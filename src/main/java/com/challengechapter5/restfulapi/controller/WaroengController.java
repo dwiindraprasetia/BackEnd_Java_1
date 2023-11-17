@@ -2,7 +2,7 @@ package com.challengechapter5.restfulapi.controller;
 
 import com.challengechapter5.restfulapi.model.entity.MenuWaroeng;
 import com.challengechapter5.restfulapi.model.entity.Pesanan;
-import com.challengechapter5.restfulapi.service.WaroengService;
+import com.challengechapter5.restfulapi.microservice.WaroengService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -36,21 +36,9 @@ public class WaroengController {
         waroengService.placeOrder(menuItem, quantity);
     }
 
-    @GetMapping("/totalAmount")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public double calculateTotalAmount() {
-        return waroengService.calculateTotalAmount();
-    }
-
     @GetMapping("/confirmedOrders")
     @PreAuthorize("hasRole('ADMIN')")
     public List<Pesanan> getConfirmedOrders() {
         return waroengService.getConfirmedOrders();
-    }
-
-    @PostMapping("/generateReceipt")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public void generateReceiptToPDF() {
-        waroengService.generateReceiptToPDF(waroengService.calculateTotalAmount());
     }
 }

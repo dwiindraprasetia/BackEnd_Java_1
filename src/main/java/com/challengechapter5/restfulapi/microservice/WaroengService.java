@@ -1,4 +1,4 @@
-package com.challengechapter5.restfulapi.service;
+package com.challengechapter5.restfulapi.microservice;
 
 import com.challengechapter5.restfulapi.model.entity.MenuWaroeng;
 import com.challengechapter5.restfulapi.model.entity.Pesanan;
@@ -12,15 +12,13 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 import java.util.*;
-import java.io.IOException;
 import java.util.stream.IntStream;
 
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional(isolation = Isolation.READ_COMMITTED, timeout = 120)
 public class WaroengService {
 
     private static final Logger logger = LoggerFactory.getLogger(WaroengService.class);
@@ -38,7 +36,8 @@ public class WaroengService {
         menuList = Arrays.asList(
                 new MenuWaroeng("Nasik Kuning", 15000),
                 new MenuWaroeng("Nasik Kebuli", 10000),
-                new MenuWaroeng("Rabok Jukut", 13000)
+                new MenuWaroeng("Rabok Jukut", 13000),
+                new MenuWaroeng("Gangan Labu", 10000)
         );
 
         orderList = new ArrayList<>();
@@ -68,16 +67,6 @@ public class WaroengService {
         logger.info("Pesanan {} x{} berhasil ditambahkan.", selectedMenu.getName(), quantity);
     }
 
-//    CATATAN UNTUK DIRI SENDIRI
-//    Kenapa function untuk menghitung total pesanan ada didalam entity???
-//    Seharusnya ada didalam service ga sih???
-    public double calculateTotalAmount() {
-        logger.info("Menghitung total pembayaran: Rp {}", orderList);
-        return orderList.stream()
-                .mapToDouble(Pesanan::getTotalPrice)
-                .sum();
-    }
-
     public List<Pesanan> getConfirmedOrders() {
         logger.info("Mengambil daftar pesanan yang dikonfirmasi.");
         return orderList;
@@ -86,40 +75,5 @@ public class WaroengService {
     public void clearOrderList() {
         logger.info("Menghapus daftar pesanan.");
         orderList.clear();
-    }
-
-//    Menjadikan output sebagai PDF
-    public void generateReceiptToPDF(double totalAmount) {
-        try {
-            PDDocument document = new PDDocument();
-            PDPage page = new PDPage();
-            document.addPage(page);
-    
-            try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
-                contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
-                contentStream.beginText();
-                contentStream.newLineAtOffset(100, 700);
-                contentStream.showText("== Struk Pembayaran ==");
-                contentStream.newLine();
-                contentStream.showText("Total Pembayaran: Rp " + totalAmount);
-                contentStream.newLine();
-                contentStream.newLine();
-    
-                for (Pesanan order : orderList) {
-                    contentStream.showText(order.toString());
-                    contentStream.newLine();
-                }
-    
-                contentStream.endText();
-            }
-    
-            document.save("struk_pembayaran.pdf");
-            document.close();
-    
-            logger.info("Struk pembayaran telah berhasil dibuat dalam format PDF.");
-        } catch (IOException e) {
-            logger.error("Terjadi kesalahan saat membuat struk pembayaran PDF.", e);
-            e.printStackTrace();
-        }
     }
 }
